@@ -46,9 +46,48 @@ if ( !class_exists('EisTeamModel')) {
             return $result;
             
         }
+         public function ExecuteCUDQuery($query) {
+            return $this->m_link->query($query);
+        }
+        
+          public function ExecuteSelectQuery($query) {
+            $result = $this->m_link->query($query);
+            $dataArray = array();
+            if ($result->num_rows > 0) {
+                //output data of each row
+                while ($row = $result->fetch_assoc()) {
+                    array_push($dataArray, $row);
+                }
+            }
+            return $dataArray;
+        }
         
         protected function GetDbLink(){
             
+        }
+       
+        /* Function: CreateMember
+         * Description: Creates Member
+         * Params:
+         * 1 - name
+         * 2 - designation 
+         * 3 - img
+       
+         * Return:
+         * On error return null, else some postive integer
+         */
+
+        public function CreateMember($m_model_team) {
+            if (is_object($m_model_team)) {
+                $ud = $m_model_team->user_data;
+
+                $query = sprintf("INSERT INTO $this->m_user_table"
+                        . " VALUES (null, '%s', '%s', '%s')", $ud['name'], $ud['designation'], $ud['img']
+                );
+
+    
+                return $this->ExecuteCUDQuery($query);
+            }
         }
     }
     
