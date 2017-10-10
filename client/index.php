@@ -7,7 +7,8 @@
         <link href="./deps/bootstrap-3.3.7-dist/css/bootstrap.css" rel="stylesheet" type="text/css"/> 
         <script src="deps/jquery/jquery-3.1.1.js" type="text/javascript"></script>
         <script src="js/main.js" type="text/javascript"></script>
-         <link rel="stylesheet" href="./css/main-style.css"/> 
+        <!--<link rel="stylesheet" href="./deps/teamStyle.css"/>--> 
+        <link href="css/main-style.css" rel="stylesheet" type="text/css"/>
          <style>
             .eis-team-container{
                 width: 90%;
@@ -27,7 +28,7 @@
                 /* background-color: darkgray; */
                 /* height: 600px; */
                 color: #8a0b0b;
-                border: 1px black solid;
+               
                 text-align: center;
                 padding: 12px;
                 margin: 10px;
@@ -46,6 +47,7 @@
                 height: 160px;
                 margin-left: auto;
                 margin-right: auto;
+                padding-top:15px;
             }
             
             @media screen and (max-width:760px){
@@ -83,7 +85,9 @@
               ?>
              </div>
         <script>
-//            DisplayMembers();
+           
+//             DisplayMembers(g_members);
+            
         </script>
     </body>
 </html>

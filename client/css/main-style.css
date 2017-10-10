@@ -115,6 +115,23 @@ html{
     color: black;
     font-size: 1em;
 }
+.team-wrapper{
+    box-shadow: 4px 4px 8px 4px rgba(0, 0, 0, 0.2);
+}
+.team-des {
+    cursor: pointer;
+    position: relative;
+    bottom: 0;
+    transition: all 0.4s linear;
+    padding: 62px 22px 62px 22px;
+    background-color: transparent;;
+}
+
+.team-des:hover {
+    background: rgba(45,67,72,0.6);
+    bottom: 20px;
+    padding: 0 16px;
+}
 
 /*
 * For desktops and large devices
@@ -168,7 +185,7 @@ html{
         padding-bottom: 10px;
         
     }
-     .eis-resume-personal .eis-label{
+  .eis-resume-personal .eis-label{
           color: #fff;
 }
   .eis-resume-personal .radio-inline{

@@ -1,159 +1,192 @@
 <?php
 
-  /*
-   * Project    : EIS Subscription Module
-   * EAO IT Services Pvt. Ltd. | www.eaoservices.com
-   * Copyright reserved @2017
+/*
+ * Project    : EIS Subscription Module
+ * EAO IT Services Pvt. Ltd. | www.eaoservices.com
+ * Copyright reserved @2017
 
-   * File Description :
+ * File Description :
 
-   * Created on : 3 Oct, 2017 | 12:38:45 PM
-   * Author     : Bilal Wani
-   * Email      : bilal.wani@eaoservices
+ * Created on : 3 Oct, 2017 | 12:38:45 PM
+ * Author     : Bilal Wani
+ * Email      : bilal.wani@eaoservices
 
-   */
-  session_start();
+ */
+session_start();
 
-  require_once 'config.php';
-  require 'eis-team-model.php';
+require_once 'config.php';
+require 'eis-team-model.php';
 
 //CODE for Message ID
-  const MSG_GET_MEMBERS = 1;
-  const MSG_CREATE_MEMBERS = 2;
+define("MSG_GET_MEMBERS", 1);
+define("MSG_CREATE_MEMBERS", 2);
 
-  if ( !class_exists('EisTeam') ) {
+class EisMessage {
 
-      class EisTeamController {
+    public $msg_id;
+    public $msg_data;
 
-          private $m_model_team = null;
+}
 
-          public function __construct($host, $user, $pwd, $database) {
-              $this->m_model_team = new EisTeamModel($host, $user, $pwd, $database);
-          }
+if (!class_exists('EisTeam')) {
 
-          public function Dispatcher($MsgObj) {
-              $msgid = $Msg->msgid;
-              $result = null;
+    class EisTeamController {
 
-              switch ($msgid) {
-                  case MSG_GET_MEMBERS:
-                      $result = $this->GetAllMembers();
-                    return $result; 
+        private $m_model_team = null;
+
+        public function __construct($host, $user, $pwd, $database) {
+            $this->m_model_team = new EisTeamModel($host, $user, $pwd, $database);
+        }
+
+        public function Dispatcher($message) {
+            $msgid = $message->msg_id;
+            //$msgid = $message->msgid;
+            $result = null;
+
+
+            switch ($msgid) {
+                case MSG_GET_MEMBERS:
+                    $result = $this->GetAllMembers();
+                    return $result;
                     break;
-                
-                  case MSG_CREATE_MEMBERS:
-      
-                $this->m_model_team->CreateMember();
-              
-                $ud = [
-                    'id' => null,
-                    'name' => $message['name'],
-                    'designation' => $message['designation'],
-                    'img' => $message['img'],
-                  
-                ];
-                
-                $m_model_team->user_data = $ud;
 
-                $ret = $this->m_model_team->CreateMember($m_model_team);
-                if ($this->m_model_team->GetErrorNum() != 0) {
-                    echo "<br> Unable Create Member <br>";
-                    echo "Error: " . $this->m_model_team->GetErrorNum() . " : " . $this->m_model_team->GetErrorMsg() . "<br>";
-                } else {
+                case MSG_CREATE_MEMBERS:
+                    
+                    $img_url = $this->HandleFileUpload($_FILES, "profile_pic");
+                    echo "Imag URL : $img_url <br>";
+//                    print_r($_FILES);
+                    echo "<Hr>";
+                    var_dump($_POST);
+                    
+                    foreach($_POST as $key => $value  ){
+                        echo "<br>KEY - $key   ---  Value : $value   </br>";
+                    }
+                    
+                    $name = $message->msg_data["name"];
+                    $designation = $message->msg_data["designation"];
 
-                    echo "<br>  Member created successfully <br>";
-                }
+                    $ret = $this->m_model_team->CreateMember($name, $designation, $img_url, null, 1 );
+
 
                 default;
+            }
+        }
 
-              }
-          }
-           
-          public function GetAllMembers() {
+        public function GetAllMembers() {
 
-              $result = $this->m_model_team->GetAllMembers();
+            $result = $this->m_model_team->GetAllMembers();
 
-              return $result;
-          }
+            return $result;
+        }
 
-          public function HandleFileUpload($_files, $fileToUpload) {
-              /*
-               * The file is first stored at $_FILES[$fileToUpload]["tmp_name"]
-               */
-              $target_dir = "../media/img/";
-              $target_file = $target_dir . basename($_files[$fileToUpload]["name"]);
+        public function HandleFileUpload($_files, $fileToUpload) {
+            /*
+             * The file is first stored at $_FILES[$fileToUpload]["tmp_name"]
+             */
+            $target_dir = "../media/img/";
+            $target_file = $target_dir . basename($_files[$fileToUpload]["name"]);
 
-              $imgFileType = pathinfo($target_file, PATHINFO_EXTENSION);
+            $imgFileType = pathinfo($target_file, PATHINFO_EXTENSION);
 
-              echo "Type : $imgFileType </br>";
+            echo "Type : $imgFileType </br>";
 
-              //Get image size
+            //Get image size
 //              $imgSize = getimagesize($_files[$fileToUpload]["tmp_name"]);
 
-              $ret = move_uploaded_file($_files[$fileToUpload]["tmp_name"], $target_file);
-              echo "Ret : $ret <br>";
-          }
+            $ret = move_uploaded_file($_files[$fileToUpload]["tmp_name"], $target_file);
+            if ( $ret == false){
+                return null;
+            }  else {
+                return $target_file;
+            }
+        }
 
-      }
+    }
 
-  }
+}
 
-  if ( isset($_REQUEST) ) {
-      $method = $_SERVER['REQUEST_METHOD'];
+if (isset($_REQUEST)) {
+
+    $method = $_SERVER['REQUEST_METHOD'];
+    $message = $_GET;
 //      echo $method;
-      switch ($method) {
-          case "POST":
+    switch ($method) {
+        case "POST":
+            global $g_server, $g_pwd, $g_user, $g_db;
 
-              break;
-          case "GET":
-              global $g_server, $g_pwd, $g_user, $g_db;
+            try {
+                $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
+                $MsgObj = new EisMessage();
 
-              try {
-                  $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
-                  $MsgObj->msg_id = $_GET["msg_id"];
-                  $members = $ctrl->Dispatcher($MsgObj);
-                  $json_obj = json_encode($members);
+                $MsgObj->msg_id = $_POST["msg_id"];
+                $MsgObj->msg_data = $_POST;
+                ;
+                //$MsgObj->msg_id = $_GET["msg_id"];
+
+                $members = $ctrl->Dispatcher($MsgObj);
+                $json_obj = json_encode($members);
 //          var_dump($json_obj);
-                  echo $json_obj;
-              } catch (Exception $ex) {
-                  echo "Error : " . $ex->getMessage();
-              }
-              break;
-      }
-  }
+                echo $json_obj;
+            } catch (Exception $ex) {
+                echo "Error : " . $ex->getMessage();
+            }
+            
+            break;
+        case "GET":
+            global $g_server, $g_pwd, $g_user, $g_db;
 
-  /*
-   * Test Functions
-   */
+            try {
+                $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
+                $MsgObj = new EisMessage();
 
-  function TestGetAllMembers() {
-      global $g_server, $g_pwd, $g_user, $g_db;
+                $MsgObj->msg_id = $_GET["msg_id"];
+                $MsgObj->msg_data = $_GET;
+                ;
+                //$MsgObj->msg_id = $_GET["msg_id"];
 
-      try {
-          $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
-          
-          $members = $ctrl->GetAllMembers();
-          $json_obj = json_encode($members);
+                $members = $ctrl->Dispatcher($MsgObj);
+                $json_obj = json_encode($members);
 //          var_dump($json_obj);
-          echo $json_obj;
-      } catch (Exception $ex) {
-          echo "Error : " . $ex->getMessage();
-      }
-  }
+                echo $json_obj;
+            } catch (Exception $ex) {
+                echo "Error : " . $ex->getMessage();
+            }
+            break;
+    }
+}
 
-  function TestHandleFileUpload() {
-      try {
-          global $g_server, $g_pwd, $g_user, $g_db;
-          $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
+/*
+ * Test Functions
+ */
 
-          if ( isset($_SESSION["FILES"]) ) {
-              var_dump($_SESSION["FILES"]);
-              $ctrl->HandleFileUpload($_SESSION["FILES"], "profile_pic");
-          }
-      } catch (Exception $ex) {
-          echo "Error : " . $ex->getMessage();
-      }
-  }
+function TestGetAllMembers() {
+    global $g_server, $g_pwd, $g_user, $g_db;
+
+    try {
+        $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
+
+        $members = $ctrl->GetAllMembers();
+        $json_obj = json_encode($members);
+//          var_dump($json_obj);
+        echo $json_obj;
+    } catch (Exception $ex) {
+        echo "Error : " . $ex->getMessage();
+    }
+}
+
+function TestHandleFileUpload() {
+    try {
+        global $g_server, $g_pwd, $g_user, $g_db;
+        $ctrl = new EisTeamController($g_server, $g_user, $g_pwd, $g_db);
+
+        if (isset($_SESSION["FILES"])) {
+            var_dump($_SESSION["FILES"]);
+            $ctrl->HandleFileUpload($_SESSION["FILES"], "profile_pic");
+        }
+    } catch (Exception $ex) {
+        echo "Error : " . $ex->getMessage();
+    }
+}
 
 //  TestHandleFileUpload();
 //  TestGetAllMembers();

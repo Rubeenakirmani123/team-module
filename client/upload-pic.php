@@ -14,7 +14,7 @@
 */
   ?>
   <div>
-      <form action="http://localhost/labs/projects/eis-team-module/server/" method="POST" enctype="multipart/form-data">
+      <form action="http://localhost:88/team-module/server/" method="POST" enctype="multipart/form-data">
           Pic <input type="file" name="profile_pic">
           <br>
           <button type="submit" >Upload</button>
